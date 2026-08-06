@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="tr" dir="ltr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Saypos — Kafeler için dijital menü ve işletim sistemi</title>
+<meta name="description" content="Kafeniz için dijital QR menü. Müşteriniz karekodu okutur, menünüz Türkçe, İngilizce ve Arapça anında açılır." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Hanken+Grotesk:wght@400;500;600;700&family=Poppins:wght@700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14100A; --ink-soft:#463C2B; --espresso:#1B1610;
+    --paper:#FBF8F1; --cream:#F3EBD9; --cream-2:#F6EFE1;
+    --gold:#C9A84C; --gold-deep:#9E7E2B; --logo-dot:#EAC63C; --ember:#E8843C;
+    --muted:#A7997B; --line:rgba(20,16,10,0.10); --line-strong:rgba(20,16,10,0.16);
+    --shadow-sm:0 1px 2px rgba(20,16,10,.05), 0 6px 18px rgba(20,16,10,.05);
+    --shadow-md:0 2px 6px rgba(20,16,10,.06), 0 22px 50px rgba(20,16,10,.10);
+    --r:16px; --r-lg:22px; --maxw:1160px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+  body{font-family:"Hanken Grotesk",system-ui,-apple-system,sans-serif;color:var(--ink);background:var(--paper);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  h1,h2,h3{font-family:"Fraunces",Georgia,serif;font-optical-sizing:auto;line-height:1.08;letter-spacing:-.01em;font-weight:500}
+  .em{font-style:italic;color:var(--gold-deep)}
+  a{color:inherit;text-decoration:none}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:.78rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-deep)}
+  .eyebrow::before{content:"";width:22px;height:1px;background:var(--gold)}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;font-family:inherit;font-size:.98rem;font-weight:600;padding:14px 24px;border-radius:999px;cursor:pointer;border:1px solid transparent;transition:transform .18s ease, box-shadow .18s ease, background .18s ease, color .18s ease;white-space:nowrap}
+  .btn-gold{background:var(--gold);color:#211a08;box-shadow:0 8px 22px rgba(201,168,76,.30)}
+  .btn-gold:hover{background:#d4b458;transform:translateY(-2px);box-shadow:0 12px 28px rgba(201,168,76,.38)}
+  .btn-ghost{background:transparent;color:var(--ink);border-color:var(--line-strong)}
+  .btn-ghost:hover{border-color:var(--ink);transform:translateY(-2px)}
+  .btn svg{width:18px;height:18px}
+  .btn-sm{padding:10px 18px;font-size:.9rem}
+
+  header{position:sticky;top:0;z-index:50;background:rgba(251,248,241,.82);backdrop-filter:saturate(1.4) blur(12px);border-bottom:1px solid transparent;transition:border-color .3s, box-shadow .3s}
+  header.scrolled{border-bottom-color:var(--line);box-shadow:0 4px 24px rgba(20,16,10,.04)}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:72px;gap:16px}
+  .brand{display:inline-flex;align-items:baseline;font-family:"Poppins",sans-serif;font-weight:800;font-size:1.5rem;letter-spacing:-.035em;color:var(--ink);line-height:1}
+  .brand .dot{color:var(--logo-dot);font-weight:800}
+  .navlinks{display:flex;align-items:center;gap:34px}
+  .navlinks a.nl{font-size:.94rem;font-weight:500;color:var(--ink-soft);position:relative;padding:4px 0}
+  .navlinks a.nl:hover{color:var(--ink)}
+  .navlinks a.nl::after{content:"";position:absolute;left:0;bottom:-2px;width:0;height:1.5px;background:var(--gold);transition:width .22s ease}
+  .navlinks a.nl:hover::after{width:100%}
+  .nav-cta{display:flex;align-items:center;gap:14px}
+  .nav-cta .login{font-size:.94rem;font-weight:600;color:var(--ink)}
+  .langsw{display:inline-flex;border:1px solid var(--line-strong);border-radius:999px;overflow:hidden;flex:none}
+  .langsw button{background:none;border:none;cursor:pointer;font-family:"Hanken Grotesk",sans-serif;font-size:.8rem;font-weight:700;padding:7px 11px;color:var(--ink-soft);transition:background .18s,color .18s;line-height:1}
+  .langsw button+button{border-inline-start:1px solid var(--line)}
+  .langsw button.on{background:var(--gold);color:#221a08}
+  .langsw button:hover:not(.on){background:var(--cream)}
+  .burger{display:none;background:none;border:1px solid var(--line-strong);border-radius:10px;width:44px;height:44px;cursor:pointer;flex-direction:column;gap:5px;align-items:center;justify-content:center;flex:none}
+  .burger span{width:20px;height:2px;background:var(--ink);border-radius:2px;transition:.25s}
+  .mobile-menu{display:none;padding:8px 24px 26px;border-bottom:1px solid var(--line);background:var(--paper)}
+  .mobile-menu a{display:block;padding:12px 4px;font-weight:500;border-bottom:1px solid var(--line);color:var(--ink-soft)}
+  .mobile-menu .mrow{display:flex;gap:12px;margin-top:18px}
+  .mobile-menu .mrow .btn{flex:1}
+
+  .hero{position:relative;padding:64px 0 78px;overflow:hidden}
+  .hero-glow{position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(560px 420px at 82% 18%, rgba(201,168,76,.16), transparent 60%),radial-gradient(480px 400px at 8% 90%, rgba(232,132,60,.08), transparent 60%)}
+  .hero-grid{position:relative;z-index:1;display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
+  .hero h1{font-size:clamp(2.5rem,5.4vw,4.2rem);margin:18px 0 20px}
+  .hero p.lead{font-size:1.16rem;color:var(--ink-soft);max-width:34ch;margin-bottom:12px}
+  .hero .microtrust{font-size:.92rem;color:var(--muted);margin:22px 0 26px;display:flex;align-items:center;gap:8px}
+  .hero .microtrust svg{width:16px;height:16px;color:var(--gold-deep);flex:none}
+  .hero-cta{display:flex;gap:14px;flex-wrap:wrap}
+
+  .phone-stage{position:relative;display:flex;justify-content:center;align-items:center}
+  .phone-stage::before{content:"";position:absolute;width:330px;height:330px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.22),transparent 68%);filter:blur(6px);z-index:0}
+  .phone{position:relative;z-index:1;width:288px;height:588px;background:#0e0b07;border-radius:42px;padding:11px;box-shadow:var(--shadow-md), inset 0 0 0 2px rgba(255,255,255,.05);animation:float 6s ease-in-out infinite}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+  @media (prefers-reduced-motion: reduce){.phone,.scan-badge{animation:none}}
+  .phone .notch{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:120px;height:26px;background:#0e0b07;border-radius:0 0 16px 16px;z-index:3}
+  .screen{width:100%;height:100%;background:var(--paper);border-radius:32px;overflow:hidden;display:flex;flex-direction:column}
+  .m-head{background:linear-gradient(160deg,#1B1610,#2a2016);color:var(--cream);padding:30px 20px 18px}
+  .m-head .cafe{font-family:"Fraunces";font-size:1.28rem;font-weight:600;letter-spacing:-.01em}
+  .m-head .sub{font-size:.72rem;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-top:2px}
+  .langs{display:flex;gap:6px;margin-top:14px}
+  .langs .lg{font-size:.72rem;font-weight:600;padding:5px 12px;border-radius:999px;border:1px solid rgba(243,235,217,.22);color:var(--cream)}
+  .langs .lg.on{background:var(--gold);color:#221a08;border-color:var(--gold)}
+  .m-body{flex:1;overflow:hidden;padding:16px 16px 0}
+  .m-cat{font-size:.68rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-deep);margin:6px 0 10px}
+  .m-item{display:flex;gap:11px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+  .m-item .thumb{width:44px;height:44px;border-radius:11px;flex:none}
+  .t1{background:linear-gradient(135deg,#e7c98d,#c98f3f)}
+  .t2{background:linear-gradient(135deg,#d8b7a0,#8a5a3c)}
+  .t3{background:linear-gradient(135deg,#cbd6a6,#7f9a4e)}
+  .t4{background:linear-gradient(135deg,#e6b7a4,#b56a4a)}
+  .m-item .info{flex:1;min-width:0}
+  .m-item .nm{font-size:.86rem;font-weight:600;color:var(--ink);line-height:1.2}
+  .m-item .ds{font-size:.7rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .m-item .pr{font-size:.82rem;font-weight:700;color:var(--gold-deep);flex:none}
+  .m-foot{padding:12px 16px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:7px;font-size:.72rem;color:var(--muted);font-weight:600}
+  .m-foot .dot{width:6px;height:6px;border-radius:50%;background:var(--ember);box-shadow:0 0 0 3px rgba(232,132,60,.16)}
+  .scan-badge{position:absolute;z-index:2;bottom:44px;right:-6px;background:#fff;border-radius:16px;padding:12px 14px;box-shadow:var(--shadow-md);display:flex;align-items:center;gap:11px;border:1px solid var(--line);animation:float 6s ease-in-out infinite;animation-delay:.5s}
+  .scan-badge .qr{width:42px;height:42px;border-radius:9px;background:conic-gradient(from 0deg at 25% 25%,#1B1610 0 90deg,transparent 0 180deg,#1B1610 0 270deg,transparent 0),#fff;background-size:14px 14px;border:3px solid #1B1610;flex:none}
+  .scan-badge .txt b{display:block;font-size:.82rem;color:var(--ink)}
+  .scan-badge .txt span{font-size:.7rem;color:var(--muted)}
+
+  .trust{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--cream-2)}
+  .trust-in{display:flex;justify-content:space-between;gap:20px;padding:24px 0;flex-wrap:wrap}
+  .trust-item{display:flex;align-items:center;gap:12px}
+  .trust-item .ico{width:38px;height:38px;border-radius:10px;background:var(--paper);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--gold-deep);flex:none}
+  .trust-item .ico svg{width:19px;height:19px}
+  .trust-item b{font-size:.98rem;font-weight:700;display:block;line-height:1.2}
+  .trust-item span{font-size:.82rem;color:var(--muted)}
+
+  .section{padding:92px 0}
+  .section-head{max-width:640px;margin-bottom:52px}
+  .section-head.center{margin-left:auto;margin-right:auto;text-align:center}
+  .section-head h2{font-size:clamp(2rem,3.6vw,2.9rem);margin:16px 0 14px}
+  .section-head p{font-size:1.08rem;color:var(--ink-soft)}
+
+  .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .feat{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:28px 26px;box-shadow:var(--shadow-sm);position:relative;transition:transform .2s ease, box-shadow .2s ease, border-color .2s}
+  .feat:hover{transform:translateY(-4px);box-shadow:var(--shadow-md);border-color:var(--line-strong)}
+  .feat .fico{width:50px;height:50px;border-radius:13px;background:linear-gradient(150deg,var(--cream),#efe4c9);display:flex;align-items:center;justify-content:center;color:var(--gold-deep);margin-bottom:20px}
+  .feat .fico svg{width:24px;height:24px}
+  .feat h3{font-size:1.24rem;margin-bottom:9px}
+  .feat p{font-size:.96rem;color:var(--ink-soft)}
+  .tag{position:absolute;top:22px;right:22px;font-size:.68rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:5px 11px;border-radius:999px}
+  .tag.ready{background:rgba(201,168,76,.16);color:var(--gold-deep)}
+  .tag.soon{background:rgba(20,16,10,.06);color:var(--muted)}
+  .feat.is-ready{border-color:rgba(201,168,76,.5);box-shadow:0 2px 6px rgba(201,168,76,.08),0 20px 44px rgba(201,168,76,.1)}
+
+  .how{background:var(--espresso);color:var(--cream)}
+  .how .section-head h2{color:var(--cream)}
+  .how .section-head p{color:var(--muted)}
+  .how .eyebrow{color:var(--gold)}
+  .how .eyebrow::before{background:var(--gold)}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:rgba(243,235,217,.09);border:1px solid rgba(243,235,217,.09);border-radius:var(--r-lg);overflow:hidden}
+  .step{background:var(--espresso);padding:34px 30px;transition:background .25s}
+  .step:hover{background:#241d14}
+  .step .no{font-family:"Fraunces";font-size:1rem;color:var(--gold);font-weight:600;letter-spacing:.1em}
+  .step h3{font-size:1.22rem;color:var(--cream);margin:14px 0 8px}
+  .step p{font-size:.94rem;color:var(--muted)}
+
+  .segs{display:flex;flex-wrap:wrap;gap:14px}
+  .seg{display:flex;flex-direction:column;gap:6px;flex:1 1 200px;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;transition:transform .2s, border-color .2s, box-shadow .2s}
+  .seg:hover{transform:translateY(-3px);border-color:var(--gold);box-shadow:var(--shadow-sm)}
+  .seg b{font-family:"Fraunces";font-size:1.16rem;font-weight:600}
+  .seg span{font-size:.9rem;color:var(--ink-soft)}
+
+  .faq{max-width:800px;margin:0 auto}
+  .qa{border-bottom:1px solid var(--line)}
+  .qa button{width:100%;text-align:start;background:none;border:none;cursor:pointer;font-family:"Fraunces";font-size:1.18rem;font-weight:500;color:var(--ink);padding:24px 44px 24px 0;position:relative;display:flex}
+  .qa button::after{content:"+";position:absolute;right:6px;top:50%;transform:translateY(-50%);font-family:"Hanken Grotesk";font-size:1.6rem;color:var(--gold-deep);transition:transform .25s;line-height:1}
+  .qa.open button::after{transform:translateY(-50%) rotate(45deg)}
+  .qa .ans{max-height:0;overflow:hidden;transition:max-height .3s ease}
+  .qa .ans p{padding:0 40px 24px 0;color:var(--ink-soft);font-size:1rem}
+
+  .cta{background:linear-gradient(160deg,#1B1610,#2a2015);color:var(--cream);border-radius:28px;padding:56px;position:relative;overflow:hidden}
+  .cta::before{content:"";position:absolute;inset:0;background:radial-gradient(500px 300px at 88% 10%,rgba(201,168,76,.22),transparent 60%);pointer-events:none}
+  .cta-grid{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+  .cta h2{font-size:clamp(1.9rem,3.2vw,2.6rem);color:var(--cream);margin-bottom:16px}
+  .cta p{color:var(--muted);font-size:1.05rem;margin-bottom:24px}
+  .cta .points{list-style:none;display:flex;flex-direction:column;gap:12px}
+  .cta .points li{display:flex;align-items:center;gap:11px;font-size:.98rem;color:var(--cream)}
+  .cta .points li svg{width:18px;height:18px;color:var(--gold);flex:none}
+  .form{background:rgba(251,248,241,.04);border:1px solid rgba(243,235,217,.14);border-radius:var(--r-lg);padding:28px}
+  .form label{display:block;font-size:.84rem;font-weight:600;color:var(--cream);margin:0 0 7px}
+  .field{margin-bottom:16px}
+  .form input,.form select{width:100%;padding:13px 15px;border-radius:12px;border:1px solid rgba(243,235,217,.18);background:rgba(20,16,10,.35);color:var(--cream);font-family:inherit;font-size:.96rem}
+  .form input::placeholder{color:rgba(167,153,123,.7)}
+  .form input:focus,.form select:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.2)}
+  .form select option{background:#1B1610}
+  .form .btn-gold{width:100%;margin-top:6px}
+  .form .fineprint{font-size:.78rem;color:var(--muted);margin-top:14px;text-align:center}
+
+  footer{background:var(--paper);border-top:1px solid var(--line);padding:64px 0 30px}
+  .foot-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:40px;margin-bottom:44px}
+  .foot-brand .brand{margin-bottom:16px}
+  .foot-brand p{font-size:.94rem;color:var(--ink-soft);max-width:34ch}
+  .foot-col h4{font-size:.78rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:16px;font-family:"Hanken Grotesk";font-weight:700}
+  .foot-col a{display:block;font-size:.94rem;color:var(--ink-soft);padding:6px 0;transition:color .18s}
+  .foot-col a:hover{color:var(--gold-deep)}
+  .foot-bottom{border-top:1px solid var(--line);padding-top:24px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:.86rem;color:var(--muted)}
+
+  .reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease, transform .6s ease}
+  .reveal.in{opacity:1;transform:none}
+  :focus-visible{outline:2px solid var(--gold-deep);outline-offset:3px;border-radius:4px}
+
+  /* ---- Arabic / RTL ---- */
+  html[dir="rtl"] body{font-family:"IBM Plex Sans Arabic","Hanken Grotesk",sans-serif}
+  html[dir="rtl"] h1,html[dir="rtl"] h2,html[dir="rtl"] h3,html[dir="rtl"] .seg b,html[dir="rtl"] .m-head .cafe,html[dir="rtl"] .step .no,html[dir="rtl"] .qa button{font-family:"IBM Plex Sans Arabic",sans-serif}
+  html[dir="rtl"] .em{font-style:normal;font-weight:700}
+  html[dir="rtl"] .brand{direction:ltr}
+  html[dir="rtl"] .tag{right:auto;left:22px}
+  html[dir="rtl"] .qa button{padding:24px 0 24px 44px}
+  html[dir="rtl"] .qa button::after{right:auto;left:6px}
+  html[dir="rtl"] .qa .ans p{padding:0 0 24px 40px}
+  html[dir="rtl"] .scan-badge{right:auto;left:-6px}
+  html[dir="rtl"] .langsw button+button{border-inline-start:1px solid var(--line)}
+
+  @media (max-width:940px){
+    .hero-grid{grid-template-columns:1fr;gap:44px}
+    .phone-stage{order:-1}
+    .hero p.lead{max-width:none}
+    .feat-grid{grid-template-columns:repeat(2,1fr)}
+    .steps{grid-template-columns:repeat(2,1fr)}
+    .cta-grid{grid-template-columns:1fr;gap:32px}
+    .foot-grid{grid-template-columns:1fr 1fr;gap:32px}
+  }
+  @media (max-width:680px){
+    .navlinks,.nav-cta .login,.nav-cta .btn{display:none}
+    .burger{display:flex}
+    .section{padding:64px 0}
+    .feat-grid{grid-template-columns:1fr}
+    .steps{grid-template-columns:1fr}
+    .cta{padding:34px 26px}
+    .foot-grid{grid-template-columns:1fr 1fr;gap:26px}
+    .hero{padding:44px 0 56px}
+    .langsw button{padding:6px 9px;font-size:.75rem}
+  }
+</style>
+</head>
+<body>
+
+<header id="hdr">
+  <div class="wrap">
+    <nav class="nav">
+      <a href="#top" class="brand" aria-label="Saypos">Saypos<span class="dot">.</span></a>
+      <div class="navlinks">
+        <a href="#ozellikler" class="nl" data-i18n="nav.features">Özellikler</a>
+        <a href="#nasil" class="nl" data-i18n="nav.how">Nasıl çalışır</a>
+        <a href="#kimler" class="nl" data-i18n="nav.who">Kimler için</a>
+        <a href="#sss" class="nl" data-i18n="nav.faq">SSS</a>
+      </div>
+      <div class="nav-cta">
+        <div class="langsw" role="group" aria-label="Language">
+          <button data-lang="tr" class="on">TR</button>
+          <button data-lang="en">EN</button>
+          <button data-lang="ar">AR</button>
+        </div>
+        <a href="#basla" class="login" data-i18n="nav.login">Giriş</a>
+        <a href="#basla" class="btn btn-gold btn-sm" data-i18n="nav.try">Ücretsiz dene</a>
+        <button class="burger" id="burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+      </div>
+    </nav>
+  </div>
+  <div class="mobile-menu" id="mmenu">
+    <a href="#ozellikler" data-i18n="nav.features">Özellikler</a>
+    <a href="#nasil" data-i18n="nav.how">Nasıl çalışır</a>
+    <a href="#kimler" data-i18n="nav.who">Kimler için</a>
+    <a href="#sss" data-i18n="nav.faq">SSS</a>
+    <div class="mrow">
+      <a href="#basla" class="btn btn-ghost btn-sm" data-i18n="nav.login">Giriş</a>
+      <a href="#basla" class="btn btn-gold btn-sm" data-i18n="nav.try">Ücretsiz dene</a>
+    </div>
+  </div>
+</header>
+
+<a id="top"></a>
+
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <span class="eyebrow" data-i18n="hero.eyebrow">Kafe işletim sistemi</span>
+      <h1 data-i18n-html="hero.h1">Kafenizin menüsü,<br>tek bir <span class="em">karekodda</span>.</h1>
+      <p class="lead" data-i18n="hero.lead">Müşteriniz karekodu okutur; menünüz Türkçe, İngilizce ve Arapça anında açılır. Uygulama indirmek yok, beklemek yok.</p>
+      <p class="microtrust">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+        <span data-i18n="hero.micro">Kurulum bizden — siz sadece menüyü verin.</span>
+      </p>
+      <div class="hero-cta">
+        <a href="#basla" class="btn btn-gold" data-i18n="hero.try">Ücretsiz dene</a>
+        <a href="https://wa.me/905315822748" target="_blank" rel="noopener" class="btn btn-ghost">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.6.1-.2.3-.7.9-.9 1.1-.2.2-.3.2-.6.1-1.5-.8-2.5-1.4-3.5-3.1-.3-.5.3-.4.7-1.4.1-.2 0-.4 0-.5-.1-.1-.6-1.4-.8-1.9-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.8.7-1 1.7-.7 2.9.3 1.2 1.1 2.4 1.3 2.6.1.2 2.1 3.2 5 4.4 2.9 1.1 2.9.8 3.5.7.5-.1 1.7-.7 1.9-1.3.2-.7.2-1.2.2-1.3-.1-.2-.3-.2-.6-.3z"/><path d="M12 2a10 10 0 00-8.5 15.2L2 22l4.9-1.4A10 10 0 1012 2zm0 18a8 8 0 01-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 1112 20z"/></svg>
+          <span data-i18n="hero.wa">WhatsApp'tan yaz</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="phone-stage">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="screen">
+          <div class="m-head">
+            <div class="cafe">Kahfe Lounge</div>
+            <div class="sub" data-i18n="phone.sub">Dijital Menü</div>
+            <div class="langs" id="phoneLangs">
+              <span class="lg" data-plang="tr">TR</span>
+              <span class="lg" data-plang="en">EN</span>
+              <span class="lg" data-plang="ar">AR</span>
+            </div>
+          </div>
+          <div class="m-body">
+            <div class="m-cat" data-i18n="phone.cat1">Sıcak İçecekler</div>
+            <div class="m-item"><span class="thumb t1"></span><span class="info"><span class="nm" data-i18n="phone.i1n">Türk Kahvesi</span><span class="ds" data-i18n="phone.i1d">Orta şekerli</span></span><span class="pr">₺45</span></div>
+            <div class="m-item"><span class="thumb t2"></span><span class="info"><span class="nm" data-i18n="phone.i2n">Osmanlı Şerbeti</span><span class="ds" data-i18n="phone.i2d">Soğuk servis</span></span><span class="pr">₺55</span></div>
+            <div class="m-cat" style="margin-top:14px" data-i18n="phone.cat2">Nargile</div>
+            <div class="m-item"><span class="thumb t4"></span><span class="info"><span class="nm" data-i18n="phone.i3n">Çift Elma</span><span class="ds" data-i18n="phone.i3d">Premium</span></span><span class="pr">₺180</span></div>
+            <div class="m-item"><span class="thumb t3"></span><span class="info"><span class="nm" data-i18n="phone.i4n">Nane Limon</span><span class="ds" data-i18n="phone.i4d">Ferahlatıcı</span></span><span class="pr">₺170</span></div>
+          </div>
+          <div class="m-foot"><span class="dot"></span> <span data-i18n="phone.foot">Saypos ile canlı</span></div>
+        </div>
+      </div>
+      <div class="scan-badge">
+        <span class="qr"></span>
+        <span class="txt"><b data-i18n="scan.b">Okut &amp; Gör</b><span data-i18n="scan.s">Masadan sipariş</span></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="trust">
+  <div class="wrap trust-in">
+    <div class="trust-item">
+      <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h18M3 12h18M3 19h18"/></svg></span>
+      <div><b data-i18n="trust.1b">3 dil</b><span data-i18n="trust.1s">Türkçe · İngilizce · Arapça</span></div>
+    </div>
+    <div class="trust-item">
+      <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+      <div><b data-i18n="trust.2b">24 saatte kurulum</b><span data-i18n="trust.2s">Menünüz ertesi gün yayında</span></div>
+    </div>
+    <div class="trust-item">
+      <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 4v5c0 4-3 7-7 9-4-2-7-5-7-9V7z"/></svg></span>
+      <div><b data-i18n="trust.3b">Sürekli destek</b><span data-i18n="trust.3s">Aylık takip, aynı gün yanıt</span></div>
+    </div>
+    <div class="trust-item">
+      <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H4z"/><path d="M8 20h8M12 16v4"/></svg></span>
+      <div><b data-i18n="trust.4b">Cihaz gerekmez</b><span data-i18n="trust.4s">Menü her telefonda açılır</span></div>
+    </div>
+  </div>
+</div>
+
+<section class="section" id="ozellikler">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow" data-i18n="feat.eyebrow">Özellikler</span>
+      <h2 data-i18n="feat.h2">Bir dijital menüyle başlayın, tüm sistemi büyütün</h2>
+      <p data-i18n="feat.p">Şimdilik sattığımız şey dijital QR menü. Ama Saypos bundan çok daha fazlası olacak — POS, mutfak ekranı ve nargile istasyonu sırada.</p>
+    </div>
+    <div class="feat-grid">
+      <div class="feat is-ready">
+        <span class="tag ready" data-i18n="tag.ready">Hazır</span>
+        <span class="fico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg></span>
+        <h3 data-i18n="feat.1t">Dijital QR menü</h3>
+        <p data-i18n="feat.1p">Karekodu okutan müşteri menünüzü üç dilde görür. Fiyat ya da ürün değiştirmek bir dakika — baskı yok, bekleme yok.</p>
+      </div>
+      <div class="feat">
+        <span class="tag soon" data-i18n="tag.soon">Yakında</span>
+        <span class="fico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M7 20h10M12 17v3"/></svg></span>
+        <h3 data-i18n="feat.2t">Satış / POS</h3>
+        <p data-i18n="feat.2p">Sipariş, ödeme ve masa yönetimi tek ekranda. Kafeler için hızlı ve güvenilir kasa sistemi.</p>
+      </div>
+      <div class="feat">
+        <span class="tag soon" data-i18n="tag.soon">Yakında</span>
+        <span class="fico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 8h14l-1 12H6z"/><path d="M8 8V6a4 4 0 018 0v2"/></svg></span>
+        <h3 data-i18n="feat.3t">Mutfak ekranı</h3>
+        <p data-i18n="feat.3p">Siparişler mutfağa anında düşer. Hazırlık düzenli, hata en aza iner, servis hızlanır.</p>
+      </div>
+      <div class="feat">
+        <span class="tag soon" data-i18n="tag.soon">Yakında</span>
+        <span class="fico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3c3 2 3 5 1 7 2 1 3 3 3 5a4 4 0 01-8 0c0-2 1-4 3-5-2-2-2-5 1-7z"/></svg></span>
+        <h3 data-i18n="feat.4t">Nargile istasyonu</h3>
+        <p data-i18n="feat.4p">Nargile masalarını süre takibiyle yönetin — kömür ve servis zamanlaması ekranda. Kafenizin farkı.</p>
+      </div>
+      <div class="feat">
+        <span class="tag soon" data-i18n="tag.soon">Yakında</span>
+        <span class="fico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5M4 19h16M8 15l3-4 3 2 4-6"/></svg></span>
+        <h3 data-i18n="feat.5t">Yönetim &amp; raporlar</h3>
+        <p data-i18n="feat.5p">Ciro, ödeme dağılımı, en çok satanlar ve gün sonu raporları — işletmeniz tek panelde.</p>
+      </div>
+      <div class="feat">
+        <span class="tag soon" data-i18n="tag.soon">Yakında</span>
+        <span class="fico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0112 0M16 5a3 3 0 010 6M21 20a6 6 0 00-4-5.6"/></svg></span>
+        <h3 data-i18n="feat.6t">Personel &amp; masa</h3>
+        <p data-i18n="feat.6p">Açık hesaplar, personel yetkileri ve masa akışı. Yoğun saatlerde bile düzen elden gitmez.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section how" id="nasil">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow" data-i18n="how.eyebrow">Nasıl çalışır</span>
+      <h2 data-i18n="how.h2">İlk konuşmadan yayına — aylar değil, günler</h2>
+      <p data-i18n="how.p">Teknik işi biz üstleniyoruz. Siz kafenizi çalıştırmaya devam edin.</p>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="no">01</div><h3 data-i18n="how.1t">Menünüzü alırız</h3><p data-i18n="how.1p">Mevcut menünüzü fotoğraf ya da liste olarak paylaşın, yeter.</p></div>
+      <div class="step"><div class="no">02</div><h3 data-i18n="how.2t">Dijitale çeviririz</h3><p data-i18n="how.2p">Menüyü hazırlar, üç dile çevirir, kafenize göre düzenleriz.</p></div>
+      <div class="step"><div class="no">03</div><h3 data-i18n="how.3t">Karekodu koyarız</h3><p data-i18n="how.3p">Masalara özel karekodlar — okutan müşteri menünüzü görür.</p></div>
+      <div class="step"><div class="no">04</div><h3 data-i18n="how.4t">24 saatte yayında</h3><p data-i18n="how.4p">Kurulum bir gün. Ertesi gün menünüz canlı ve çalışıyor.</p></div>
+      <div class="step"><div class="no">05</div><h3 data-i18n="how.5t">Anında güncelleyin</h3><p data-i18n="how.5p">Fiyat mı değişti, ürün mü tükendi? Bir dokunuşla düzeltin.</p></div>
+      <div class="step"><div class="no">06</div><h3 data-i18n="how.6t">Sürekli destek</h3><p data-i18n="how.6p">Aylık takip ve aynı gün yanıt. Yalnız bırakmıyoruz.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="kimler">
+  <div class="wrap">
+    <div class="section-head center">
+      <span class="eyebrow" data-i18n="seg.eyebrow">Kimler için</span>
+      <h2 data-i18n="seg.h2">İşletme tarzınıza göre hazır</h2>
+      <p data-i18n="seg.p">Menünüzü ve akışınızı sizin çalışma biçiminize göre kuruyoruz.</p>
+    </div>
+    <div class="segs">
+      <div class="seg"><b data-i18n="seg.1b">Kafeler</b><span data-i18n="seg.1s">Sıcak-soğuk menü, açık hesap, hızlı güncelleme.</span></div>
+      <div class="seg"><b data-i18n="seg.2b">Nargile &amp; lounge</b><span data-i18n="seg.2s">Süre takipli nargile servisi ve masalar.</span></div>
+      <div class="seg"><b data-i18n="seg.3b">Restoranlar</b><span data-i18n="seg.3s">Masa servisi, kategoriler, çok dilli menü.</span></div>
+      <div class="seg"><b data-i18n="seg.4b">Tatlıcılar</b><span data-i18n="seg.4s">Vitrin ürünleri, görselli menü, paket satış.</span></div>
+      <div class="seg"><b data-i18n="seg.5b">Fast food</b><span data-i18n="seg.5s">Hızlı sipariş, sade menü, yoğun saat akışı.</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="sss" style="background:var(--cream-2)">
+  <div class="wrap">
+    <div class="section-head center">
+      <span class="eyebrow" data-i18n="faq.eyebrow">SSS</span>
+      <h2 data-i18n="faq.h2">Karar vermeden önce merak edilenler</h2>
+    </div>
+    <div class="faq">
+      <div class="qa"><button data-i18n="faq.q1">Kurulum ne kadar sürer?</button><div class="ans"><p data-i18n="faq.a1">Menünüzü aldıktan sonra genellikle 24 saat içinde yayına alıyoruz. Dijitalleştirme, çeviri ve karekod hazırlığı bizde.</p></div></div>
+      <div class="qa"><button data-i18n="faq.q2">Sürekli internet gerekir mi?</button><div class="ans"><p data-i18n="faq.a2">Müşteriniz menüyü kendi telefonundan açar, sizin ekstra bir cihaza ihtiyacınız olmaz. Menü buluttan yüklenir, her yerden erişilir.</p></div></div>
+      <div class="qa"><button data-i18n="faq.q3">Menüyü kendim güncelleyebilir miyim?</button><div class="ans"><p data-i18n="faq.a3">Evet. Fiyat, ürün ve içerik değişikliklerini anında yapabilirsiniz — yeni baskıya gerek yok. İsterseniz güncellemeleri biz de yaparız.</p></div></div>
+      <div class="qa"><button data-i18n="faq.q4">Birden fazla şubede çalışır mı?</button><div class="ans"><p data-i18n="faq.a4">Evet, her şube kendi menüsü ve karekodlarıyla ayrı yönetilir. Büyüdükçe sistem sizinle büyür.</p></div></div>
+      <div class="qa"><button data-i18n="faq.q5">Karar vermeden deneyebilir miyim?</button><div class="ans"><p data-i18n="faq.a5">Tabii. Ücretsiz deneme ile menünüzü gerçek haliyle görürsünüz, sonra devam etmeye karar verirsiniz. Taahhüt yok.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="basla">
+  <div class="wrap">
+    <div class="cta">
+      <div class="cta-grid">
+        <div class="cta-copy">
+          <span class="eyebrow" style="color:var(--gold)" data-i18n="cta.eyebrow">Bugün başlayın</span>
+          <h2 data-i18n="cta.h2">Kafenizin dijital menüsü yarın hazır olsun</h2>
+          <p data-i18n="cta.p">Bilgilerinizi bırakın, WhatsApp'tan size dönelim. Menünüzü alalım, gerisini biz halledelim.</p>
+          <ul class="points">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="cta.p1">Taahhüt yok, ücretsiz deneme</span></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="cta.p2">24 saatte kurulum</span></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="cta.p3">Üç dilde menü, tek karekod</span></li>
+          </ul>
+        </div>
+        <div class="form">
+          <div class="field"><label for="f-name" data-i18n="form.name">Adınız</label><input id="f-name" type="text" data-i18n-ph="form.namep" placeholder="Adınız soyadınız" /></div>
+          <div class="field"><label for="f-phone" data-i18n="form.phone">Telefon</label><input id="f-phone" type="tel" placeholder="05XX XXX XX XX" /></div>
+          <div class="field"><label for="f-cafe" data-i18n="form.cafe">Kafe adı</label><input id="f-cafe" type="text" data-i18n-ph="form.cafep" placeholder="İşletmenizin adı" /></div>
+          <div class="field"><label for="f-type" data-i18n="form.type">İşletme türü</label>
+            <select id="f-type">
+              <option data-i18n="form.t1">Kafe</option>
+              <option data-i18n="form.t2">Nargile &amp; lounge</option>
+              <option data-i18n="form.t3">Restoran</option>
+              <option data-i18n="form.t4">Tatlıcı</option>
+              <option data-i18n="form.t5">Fast food</option>
+              <option data-i18n="form.t6">Diğer</option>
+            </select>
+          </div>
+          <a href="#" id="submitBtn" class="btn btn-gold" data-i18n="form.submit">WhatsApp'tan gönder</a>
+          <p class="fineprint" data-i18n="form.fine">Bilgileriniz kimseyle paylaşılmaz.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a href="#top" class="brand" aria-label="Saypos">Saypos<span class="dot">.</span></a>
+        <p data-i18n="foot.p">Kafeler ve restoranlar için dijital menü ve işletim sistemi. Dijital menüyle başlayın, tüm işletmenizi tek yerden büyütün.</p>
+      </div>
+      <div class="foot-col">
+        <h4 data-i18n="foot.c1">Ürün</h4>
+        <a href="#ozellikler" data-i18n="nav.features">Özellikler</a>
+        <a href="#nasil" data-i18n="nav.how">Nasıl çalışır</a>
+        <a href="#kimler" data-i18n="nav.who">Kimler için</a>
+        <a href="#basla" data-i18n="nav.try">Ücretsiz dene</a>
+      </div>
+      <div class="foot-col">
+        <h4 data-i18n="foot.c2">İletişim</h4>
+        <a href="https://wa.me/905315822748" target="_blank" rel="noopener">WhatsApp</a>
+        <a href="#basla" data-i18n="foot.demo">Demo iste</a>
+      </div>
+      <div class="foot-col">
+        <h4 data-i18n="foot.c3">Şirket</h4>
+        <a href="#top" data-i18n="foot.about">Hakkımızda</a>
+        <a href="#sss" data-i18n="nav.faq">SSS</a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span data-i18n="foot.rights">© 2026 Saypos — Tüm hakları saklıdır.</span>
+      <span data-i18n="foot.loc">İstanbul, Türkiye</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const I18N = {
+    tr: {
+      "nav.features":"Özellikler","nav.how":"Nasıl çalışır","nav.who":"Kimler için","nav.faq":"SSS","nav.login":"Giriş","nav.try":"Ücretsiz dene",
+      "hero.eyebrow":"Kafe işletim sistemi","hero.h1":"Kafenizin menüsü,<br>tek bir <span class=\"em\">karekodda</span>.",
+      "hero.lead":"Müşteriniz karekodu okutur; menünüz Türkçe, İngilizce ve Arapça anında açılır. Uygulama indirmek yok, beklemek yok.",
+      "hero.micro":"Kurulum bizden — siz sadece menüyü verin.","hero.try":"Ücretsiz dene","hero.wa":"WhatsApp'tan yaz",
+      "phone.sub":"Dijital Menü","phone.cat1":"Sıcak İçecekler","phone.i1n":"Türk Kahvesi","phone.i1d":"Orta şekerli","phone.i2n":"Osmanlı Şerbeti","phone.i2d":"Soğuk servis","phone.cat2":"Nargile","phone.i3n":"Çift Elma","phone.i3d":"Premium","phone.i4n":"Nane Limon","phone.i4d":"Ferahlatıcı","phone.foot":"Saypos ile canlı",
+      "scan.b":"Okut & Gör","scan.s":"Masadan sipariş",
+      "trust.1b":"3 dil","trust.1s":"Türkçe · İngilizce · Arapça","trust.2b":"24 saatte kurulum","trust.2s":"Menünüz ertesi gün yayında","trust.3b":"Sürekli destek","trust.3s":"Aylık takip, aynı gün yanıt","trust.4b":"Cihaz gerekmez","trust.4s":"Menü her telefonda açılır",
+      "feat.eyebrow":"Özellikler","feat.h2":"Bir dijital menüyle başlayın, tüm sistemi büyütün","feat.p":"Şimdilik sattığımız şey dijital QR menü. Ama Saypos bundan çok daha fazlası olacak — POS, mutfak ekranı ve nargile istasyonu sırada.",
+      "tag.ready":"Hazır","tag.soon":"Yakında",
+      "feat.1t":"Dijital QR menü","feat.1p":"Karekodu okutan müşteri menünüzü üç dilde görür. Fiyat ya da ürün değiştirmek bir dakika — baskı yok, bekleme yok.",
+      "feat.2t":"Satış / POS","feat.2p":"Sipariş, ödeme ve masa yönetimi tek ekranda. Kafeler için hızlı ve güvenilir kasa sistemi.",
+      "feat.3t":"Mutfak ekranı","feat.3p":"Siparişler mutfağa anında düşer. Hazırlık düzenli, hata en aza iner, servis hızlanır.",
+      "feat.4t":"Nargile istasyonu","feat.4p":"Nargile masalarını süre takibiyle yönetin — kömür ve servis zamanlaması ekranda. Kafenizin farkı.",
+      "feat.5t":"Yönetim & raporlar","feat.5p":"Ciro, ödeme dağılımı, en çok satanlar ve gün sonu raporları — işletmeniz tek panelde.",
+      "feat.6t":"Personel & masa","feat.6p":"Açık hesaplar, personel yetkileri ve masa akışı. Yoğun saatlerde bile düzen elden gitmez.",
+      "how.eyebrow":"Nasıl çalışır","how.h2":"İlk konuşmadan yayına — aylar değil, günler","how.p":"Teknik işi biz üstleniyoruz. Siz kafenizi çalıştırmaya devam edin.",
+      "how.1t":"Menünüzü alırız","how.1p":"Mevcut menünüzü fotoğraf ya da liste olarak paylaşın, yeter.",
+      "how.2t":"Dijitale çeviririz","how.2p":"Menüyü hazırlar, üç dile çevirir, kafenize göre düzenleriz.",
+      "how.3t":"Karekodu koyarız","how.3p":"Masalara özel karekodlar — okutan müşteri menünüzü görür.",
+      "how.4t":"24 saatte yayında","how.4p":"Kurulum bir gün. Ertesi gün menünüz canlı ve çalışıyor.",
+      "how.5t":"Anında güncelleyin","how.5p":"Fiyat mı değişti, ürün mü tükendi? Bir dokunuşla düzeltin.",
+      "how.6t":"Sürekli destek","how.6p":"Aylık takip ve aynı gün yanıt. Yalnız bırakmıyoruz.",
+      "seg.eyebrow":"Kimler için","seg.h2":"İşletme tarzınıza göre hazır","seg.p":"Menünüzü ve akışınızı sizin çalışma biçiminize göre kuruyoruz.",
+      "seg.1b":"Kafeler","seg.1s":"Sıcak-soğuk menü, açık hesap, hızlı güncelleme.","seg.2b":"Nargile & lounge","seg.2s":"Süre takipli nargile servisi ve masalar.","seg.3b":"Restoranlar","seg.3s":"Masa servisi, kategoriler, çok dilli menü.","seg.4b":"Tatlıcılar","seg.4s":"Vitrin ürünleri, görselli menü, paket satış.","seg.5b":"Fast food","seg.5s":"Hızlı sipariş, sade menü, yoğun saat akışı.",
+      "faq.eyebrow":"SSS","faq.h2":"Karar vermeden önce merak edilenler",
+      "faq.q1":"Kurulum ne kadar sürer?","faq.a1":"Menünüzü aldıktan sonra genellikle 24 saat içinde yayına alıyoruz. Dijitalleştirme, çeviri ve karekod hazırlığı bizde.",
+      "faq.q2":"Sürekli internet gerekir mi?","faq.a2":"Müşteriniz menüyü kendi telefonundan açar, sizin ekstra bir cihaza ihtiyacınız olmaz. Menü buluttan yüklenir, her yerden erişilir.",
+      "faq.q3":"Menüyü kendim güncelleyebilir miyim?","faq.a3":"Evet. Fiyat, ürün ve içerik değişikliklerini anında yapabilirsiniz — yeni baskıya gerek yok. İsterseniz güncellemeleri biz de yaparız.",
+      "faq.q4":"Birden fazla şubede çalışır mı?","faq.a4":"Evet, her şube kendi menüsü ve karekodlarıyla ayrı yönetilir. Büyüdükçe sistem sizinle büyür.",
+      "faq.q5":"Karar vermeden deneyebilir miyim?","faq.a5":"Tabii. Ücretsiz deneme ile menünüzü gerçek haliyle görürsünüz, sonra devam etmeye karar verirsiniz. Taahhüt yok.",
+      "cta.eyebrow":"Bugün başlayın","cta.h2":"Kafenizin dijital menüsü yarın hazır olsun","cta.p":"Bilgilerinizi bırakın, WhatsApp'tan size dönelim. Menünüzü alalım, gerisini biz halledelim.",
+      "cta.p1":"Taahhüt yok, ücretsiz deneme","cta.p2":"24 saatte kurulum","cta.p3":"Üç dilde menü, tek karekod",
+      "form.name":"Adınız","form.namep":"Adınız soyadınız","form.phone":"Telefon","form.cafe":"Kafe adı","form.cafep":"İşletmenizin adı","form.type":"İşletme türü",
+      "form.t1":"Kafe","form.t2":"Nargile & lounge","form.t3":"Restoran","form.t4":"Tatlıcı","form.t5":"Fast food","form.t6":"Diğer",
+      "form.submit":"WhatsApp'tan gönder","form.fine":"Bilgileriniz kimseyle paylaşılmaz.",
+      "foot.p":"Kafeler ve restoranlar için dijital menü ve işletim sistemi. Dijital menüyle başlayın, tüm işletmenizi tek yerden büyütün.","foot.c1":"Ürün","foot.c2":"İletişim","foot.demo":"Demo iste","foot.c3":"Şirket","foot.about":"Hakkımızda","foot.rights":"© 2026 Saypos — Tüm hakları saklıdır.","foot.loc":"İstanbul, Türkiye"
+    },
+    en: {
+      "nav.features":"Features","nav.how":"How it works","nav.who":"Who it's for","nav.faq":"FAQ","nav.login":"Login","nav.try":"Try free",
+      "hero.eyebrow":"Café operating system","hero.h1":"Your café's menu,<br>in a single <span class=\"em\">QR code</span>.",
+      "hero.lead":"Customers scan the code and your menu opens instantly in Turkish, English and Arabic. No app to download, no waiting.",
+      "hero.micro":"We handle setup — you just hand over the menu.","hero.try":"Try free","hero.wa":"Message on WhatsApp",
+      "phone.sub":"Digital Menu","phone.cat1":"Hot Drinks","phone.i1n":"Turkish Coffee","phone.i1d":"Medium sweet","phone.i2n":"Ottoman Sherbet","phone.i2d":"Served cold","phone.cat2":"Hookah","phone.i3n":"Double Apple","phone.i3d":"Premium","phone.i4n":"Mint Lemon","phone.i4d":"Refreshing","phone.foot":"Live with Saypos",
+      "scan.b":"Scan & view","scan.s":"Order from the table",
+      "trust.1b":"3 languages","trust.1s":"Turkish · English · Arabic","trust.2b":"Setup in 24 hours","trust.2s":"Your menu is live the next day","trust.3b":"Ongoing support","trust.3s":"Monthly follow-up, same-day replies","trust.4b":"No device needed","trust.4s":"The menu opens on any phone",
+      "feat.eyebrow":"Features","feat.h2":"Start with a digital menu, grow the whole system","feat.p":"For now, what we sell is the digital QR menu. But Saypos will be much more — POS, kitchen screen and hookah station are next.",
+      "tag.ready":"Ready","tag.soon":"Soon",
+      "feat.1t":"Digital QR menu","feat.1p":"Customers scan the code and see your menu in three languages. Changing a price or item takes a minute — no printing, no waiting.",
+      "feat.2t":"Sales / POS","feat.2p":"Orders, payments and tables on one screen. A fast, reliable POS built for cafés.",
+      "feat.3t":"Kitchen screen","feat.3p":"Orders drop into the kitchen instantly. Prep stays organized, errors drop, service speeds up.",
+      "feat.4t":"Hookah station","feat.4p":"Manage hookah tables with time tracking — coal and service timing on screen. Your café's edge.",
+      "feat.5t":"Admin & reports","feat.5p":"Revenue, payment breakdown, best sellers and end-of-day reports — your business in one panel.",
+      "feat.6t":"Staff & tables","feat.6p":"Open tabs, staff permissions and table flow. Order holds even in the rush.",
+      "how.eyebrow":"How it works","how.h2":"From first call to live — days, not months","how.p":"We handle the technical work. You keep running your café.",
+      "how.1t":"We take your menu","how.1p":"Just share your current menu as a photo or a list.",
+      "how.2t":"We digitize it","how.2p":"We build the menu, translate it into three languages, and tailor it to your café.",
+      "how.3t":"We place the QR","how.3p":"Custom QR codes for your tables — customers scan and see your menu.",
+      "how.4t":"Live in 24 hours","how.4p":"Setup takes a day. The next day your menu is live and working.",
+      "how.5t":"Update instantly","how.5p":"Price changed, item sold out? Fix it in one tap.",
+      "how.6t":"Ongoing support","how.6p":"Monthly follow-up and same-day replies. We don't leave you on your own.",
+      "seg.eyebrow":"Who it's for","seg.h2":"Set up for how you serve","seg.p":"We set up your menu and flow around the way you work.",
+      "seg.1b":"Cafés","seg.1s":"Hot & cold menu, open tabs, fast updates.","seg.2b":"Hookah & lounge","seg.2s":"Time-tracked hookah service and tables.","seg.3b":"Restaurants","seg.3s":"Table service, categories, multilingual menu.","seg.4b":"Dessert shops","seg.4s":"Display items, visual menu, takeaway.","seg.5b":"Fast food","seg.5s":"Fast ordering, simple menu, rush-hour flow.",
+      "faq.eyebrow":"FAQ","faq.h2":"What people ask before deciding",
+      "faq.q1":"How long does setup take?","faq.a1":"Once we have your menu, we usually go live within 24 hours. Digitizing, translation and QR setup are on us.",
+      "faq.q2":"Do I need internet all the time?","faq.a2":"Customers open the menu on their own phones; you don't need any extra device. The menu loads from the cloud and works anywhere.",
+      "faq.q3":"Can I update the menu myself?","faq.a3":"Yes. You can change prices, items and content instantly — no reprinting. If you prefer, we'll do the updates for you.",
+      "faq.q4":"Does it work across multiple branches?","faq.a4":"Yes, each branch is managed separately with its own menu and QR codes. The system grows as you do.",
+      "faq.q5":"Can I try before deciding?","faq.a5":"Of course. With a free trial you see your menu for real, then decide whether to continue. No commitment.",
+      "cta.eyebrow":"Start today","cta.h2":"Have your café's digital menu ready tomorrow","cta.p":"Leave your details and we'll reach out on WhatsApp. Give us your menu and we'll handle the rest.",
+      "cta.p1":"No commitment, free trial","cta.p2":"Setup in 24 hours","cta.p3":"Menu in three languages, one QR",
+      "form.name":"Your name","form.namep":"Full name","form.phone":"Phone","form.cafe":"Café name","form.cafep":"Your business name","form.type":"Business type",
+      "form.t1":"Café","form.t2":"Hookah & lounge","form.t3":"Restaurant","form.t4":"Dessert shop","form.t5":"Fast food","form.t6":"Other",
+      "form.submit":"Send via WhatsApp","form.fine":"Your details are never shared.",
+      "foot.p":"Digital menu and operating system for cafés and restaurants. Start with a digital menu and grow your whole business from one place.","foot.c1":"Product","foot.c2":"Contact","foot.demo":"Request a demo","foot.c3":"Company","foot.about":"About","foot.rights":"© 2026 Saypos — All rights reserved.","foot.loc":"Istanbul, Türkiye"
+    },
+    ar: {
+      "nav.features":"المميزات","nav.how":"كيف يعمل","nav.who":"لِمن","nav.faq":"الأسئلة","nav.login":"تسجيل الدخول","nav.try":"جرّب مجاناً",
+      "hero.eyebrow":"نظام تشغيل المقاهي","hero.h1":"قائمة مقهاك،<br>في <span class=\"em\">رمز QR واحد</span>.",
+      "hero.lead":"يمسح العميل الرمز فتفتح قائمتك فوراً بالتركية والإنجليزية والعربية. بلا تطبيق، بلا انتظار.",
+      "hero.micro":"التركيب علينا — أنت فقط قدّم القائمة.","hero.try":"جرّب مجاناً","hero.wa":"راسلنا على واتساب",
+      "phone.sub":"قائمة رقمية","phone.cat1":"مشروبات ساخنة","phone.i1n":"قهوة تركية","phone.i1d":"وسط السكر","phone.i2n":"شربات عثماني","phone.i2d":"بارد","phone.cat2":"أرجيلة","phone.i3n":"تفاحتين","phone.i3d":"ممتاز","phone.i4n":"نعناع وليمون","phone.i4d":"منعش","phone.foot":"مباشر مع Saypos",
+      "scan.b":"امسح وشاهد","scan.s":"اطلب من الطاولة",
+      "trust.1b":"٣ لغات","trust.1s":"التركية · الإنجليزية · العربية","trust.2b":"تركيب خلال ٢٤ ساعة","trust.2s":"قائمتك جاهزة في اليوم التالي","trust.3b":"دعم مستمر","trust.3s":"متابعة شهرية ورد في نفس اليوم","trust.4b":"لا حاجة لجهاز","trust.4s":"القائمة تفتح على أي هاتف",
+      "feat.eyebrow":"المميزات","feat.h2":"ابدأ بقائمة رقمية، وطوّر النظام بالكامل","feat.p":"نبيع الآن القائمة الرقمية عبر رمز QR. لكن Saypos سيكون أكثر من ذلك بكثير — نقاط البيع وشاشة المطبخ ومحطة الأرجيلة قادمة.",
+      "tag.ready":"جاهز","tag.soon":"قريباً",
+      "feat.1t":"قائمة رقمية QR","feat.1p":"يمسح العميل الرمز فيرى قائمتك بثلاث لغات. تغيير السعر أو الصنف يستغرق دقيقة — بلا طباعة ولا انتظار.",
+      "feat.2t":"المبيعات / نقاط البيع","feat.2p":"الطلبات والمدفوعات والطاولات على شاشة واحدة. نظام كاشير سريع وموثوق للمقاهي.",
+      "feat.3t":"شاشة المطبخ","feat.3p":"تصل الطلبات إلى المطبخ فوراً. تحضير منظم وأخطاء أقل وخدمة أسرع.",
+      "feat.4t":"محطة الأرجيلة","feat.4p":"أدر طاولات الأرجيلة مع تتبّع الوقت — الفحم وتوقيت الخدمة على الشاشة. ميزة مقهاك.",
+      "feat.5t":"الإدارة والتقارير","feat.5p":"الإيرادات وتوزيع المدفوعات والأكثر مبيعاً وتقارير نهاية اليوم — عملك في لوحة واحدة.",
+      "feat.6t":"الموظفون والطاولات","feat.6p":"الحسابات المفتوحة وصلاحيات الموظفين وتدفّق الطاولات. النظام يصمد حتى في الذروة.",
+      "how.eyebrow":"كيف يعمل","how.h2":"من أول اتصال إلى الإطلاق — أيام لا أشهر","how.p":"نتكفّل بالجانب التقني. وأنت تواصل إدارة مقهاك.",
+      "how.1t":"نأخذ قائمتك","how.1p":"شارك قائمتك الحالية كصورة أو قائمة، هذا يكفي.",
+      "how.2t":"نحوّلها رقمياً","how.2p":"نُعدّ القائمة ونترجمها لثلاث لغات ونخصّصها لمقهاك.",
+      "how.3t":"نضع الرمز","how.3p":"رموز مخصّصة لطاولاتك — يمسحها العميل فيرى قائمتك.",
+      "how.4t":"الإطلاق خلال ٢٤ ساعة","how.4p":"التركيب يوم واحد. في اليوم التالي قائمتك مباشرة وتعمل.",
+      "how.5t":"حدّث فوراً","how.5p":"تغيّر سعر أو نفد صنف؟ عدّله بلمسة واحدة.",
+      "how.6t":"دعم مستمر","how.6p":"متابعة شهرية ورد في نفس اليوم. لا نتركك وحدك.",
+      "seg.eyebrow":"لِمن","seg.h2":"مُعدّ حسب طريقة عملك","seg.p":"نُعدّ قائمتك وسير عملك بما يناسب طريقتك.",
+      "seg.1b":"المقاهي","seg.1s":"قائمة ساخنة وباردة، حسابات مفتوحة، تحديث سريع.","seg.2b":"أرجيلة ولاونج","seg.2s":"خدمة أرجيلة بتتبّع الوقت والطاولات.","seg.3b":"المطاعم","seg.3s":"خدمة طاولات وأقسام وقائمة متعددة اللغات.","seg.4b":"محلات الحلويات","seg.4s":"منتجات العرض، قائمة بالصور، بيع سفري.","seg.5b":"الوجبات السريعة","seg.5s":"طلب سريع، قائمة بسيطة، تدفّق ساعات الذروة.",
+      "faq.eyebrow":"الأسئلة الشائعة","faq.h2":"أسئلة قبل اتخاذ القرار",
+      "faq.q1":"كم يستغرق التركيب؟","faq.a1":"بعد استلام قائمتك نطلقها عادة خلال ٢٤ ساعة. الرقمنة والترجمة وتحضير الرمز علينا.",
+      "faq.q2":"هل أحتاج إنترنت دائماً؟","faq.a2":"يفتح العميل القائمة من هاتفه، ولا تحتاج جهازاً إضافياً. تُحمّل القائمة من السحابة وتعمل في أي مكان.",
+      "faq.q3":"هل يمكنني تحديث القائمة بنفسي؟","faq.a3":"نعم. يمكنك تغيير الأسعار والأصناف والمحتوى فوراً — بلا إعادة طباعة. وإن رغبت نقوم بالتحديثات نيابة عنك.",
+      "faq.q4":"هل يعمل في عدة فروع؟","faq.a4":"نعم، يُدار كل فرع على حدة بقائمته ورموزه. ينمو النظام معك.",
+      "faq.q5":"هل أستطيع التجربة قبل القرار؟","faq.a5":"بالطبع. مع تجربة مجانية ترى قائمتك حقيقةً ثم تقرر المتابعة. بلا التزام.",
+      "cta.eyebrow":"ابدأ اليوم","cta.h2":"لتكن قائمة مقهاك الرقمية جاهزة غداً","cta.p":"اترك بياناتك ونتواصل معك عبر واتساب. أعطنا قائمتك ونتكفّل بالباقي.",
+      "cta.p1":"بلا التزام، تجربة مجانية","cta.p2":"تركيب خلال ٢٤ ساعة","cta.p3":"قائمة بثلاث لغات، رمز واحد",
+      "form.name":"اسمك","form.namep":"الاسم الكامل","form.phone":"الهاتف","form.cafe":"اسم المقهى","form.cafep":"اسم منشأتك","form.type":"نوع المنشأة",
+      "form.t1":"مقهى","form.t2":"أرجيلة ولاونج","form.t3":"مطعم","form.t4":"محل حلويات","form.t5":"وجبات سريعة","form.t6":"أخرى",
+      "form.submit":"أرسل عبر واتساب","form.fine":"لن تُشارك بياناتك مع أحد.",
+      "foot.p":"قائمة رقمية ونظام تشغيل للمقاهي والمطاعم. ابدأ بقائمة رقمية وطوّر عملك بالكامل من مكان واحد.","foot.c1":"المنتج","foot.c2":"تواصل","foot.demo":"اطلب عرضاً","foot.c3":"الشركة","foot.about":"من نحن","foot.rights":"© 2026 Saypos — جميع الحقوق محفوظة.","foot.loc":"إسطنبول، تركيا"
+    }
+  };
+
+  const WA = {
+    tr:{intro:"Merhaba! Saypos dijital menü denemek istiyorum.",name:"Ad",phone:"Telefon",cafe:"Kafe",type:"Tür"},
+    en:{intro:"Hello! I'd like to try the Saypos digital menu.",name:"Name",phone:"Phone",cafe:"Café",type:"Type"},
+    ar:{intro:"مرحباً! أرغب بتجربة قائمة Saypos الرقمية.",name:"الاسم",phone:"الهاتف",cafe:"المقهى",type:"النوع"}
+  };
+
+  let lang = "tr";
+  function setLang(l){
+    lang = l;
+    const dict = I18N[l];
+    document.documentElement.lang = l;
+    document.documentElement.dir = (l === "ar") ? "rtl" : "ltr";
+    document.querySelectorAll("[data-i18n]").forEach(el=>{ const k=el.getAttribute("data-i18n"); if(dict[k]!=null) el.textContent=dict[k]; });
+    document.querySelectorAll("[data-i18n-html]").forEach(el=>{ const k=el.getAttribute("data-i18n-html"); if(dict[k]!=null) el.innerHTML=dict[k]; });
+    document.querySelectorAll("[data-i18n-ph]").forEach(el=>{ const k=el.getAttribute("data-i18n-ph"); if(dict[k]!=null) el.setAttribute("placeholder",dict[k]); });
+    document.querySelectorAll(".langsw button").forEach(b=>b.classList.toggle("on", b.getAttribute("data-lang")===l));
+    document.querySelectorAll("#phoneLangs .lg").forEach(p=>p.classList.toggle("on", p.getAttribute("data-plang")===l));
+    // recompute any open FAQ height
+    document.querySelectorAll(".qa.open").forEach(qa=>{ const a=qa.querySelector(".ans"); a.style.maxHeight=a.scrollHeight+"px"; });
+  }
+  document.querySelectorAll(".langsw button").forEach(b=> b.addEventListener("click",()=> setLang(b.getAttribute("data-lang")) ));
+
+  const hdr = document.getElementById('hdr');
+  const onScroll = () => hdr.classList.toggle('scrolled', window.scrollY > 10);
+  onScroll(); window.addEventListener('scroll', onScroll, {passive:true});
+
+  const burger = document.getElementById('burger');
+  const mmenu = document.getElementById('mmenu');
+  burger.addEventListener('click', () => {
+    const open = mmenu.style.display === 'block';
+    mmenu.style.display = open ? 'none' : 'block';
+    burger.setAttribute('aria-expanded', String(!open));
+  });
+  mmenu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => { mmenu.style.display = 'none'; burger.setAttribute('aria-expanded','false'); }));
+
+  document.querySelectorAll('.qa button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const qa = btn.parentElement;
+      const ans = qa.querySelector('.ans');
+      const isOpen = qa.classList.contains('open');
+      document.querySelectorAll('.qa').forEach(o => { o.classList.remove('open'); o.querySelector('.ans').style.maxHeight = null; });
+      if (!isOpen){ qa.classList.add('open'); ans.style.maxHeight = ans.scrollHeight + 'px'; }
+    });
+  });
+
+  document.getElementById('submitBtn').addEventListener('click', (e) => {
+    e.preventDefault();
+    const t = WA[lang];
+    const name = document.getElementById('f-name').value.trim();
+    const phone = document.getElementById('f-phone').value.trim();
+    const cafe = document.getElementById('f-cafe').value.trim();
+    const type = document.getElementById('f-type').value;
+    const msg = `${t.intro}%0A%0A${t.name}: ${name}%0A${t.phone}: ${phone}%0A${t.cafe}: ${cafe}%0A${t.type}: ${type}`;
+    window.open(`https://wa.me/905315822748?text=${msg}`, '_blank');
+  });
+
+  const els = document.querySelectorAll('.section, .trust, .hero-copy, .phone-stage');
+  els.forEach(el => el.classList.add('reveal'));
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(en => { if (en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); } });
+  }, {threshold:0.08});
+  els.forEach(el => io.observe(el));
+
+  setLang('tr');
+</script>
+</body>
+</html>
